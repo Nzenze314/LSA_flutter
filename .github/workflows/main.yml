@@ -11,13 +11,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.29.2' # Replace with your exact Flutter version
-        channel: 'stable'
-    - name: Get packages
-      run: flutter pub get
-    - name: Build Android APK
-      run: flutter build apk --release
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.2'
+          channel: 'stable'
+
+      - name: Get packages
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Zip the APK
+        run: |
+          mkdir -p build_output
+          cp build/app/outputs/flutter-apk/app-release.apk build_output/
+          cd build_output
+          zip app-release.zip app-release.apk
+
+      - name: Upload Zipped APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-apk-zip
+          path: build_output/app-release.zip

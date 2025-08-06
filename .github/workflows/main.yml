@@ -25,15 +25,8 @@ jobs:
       - name: Build Android APK
         run: flutter build apk --release
 
-      - name: Zip the APK
-        run: |
-          mkdir -p build_output
-          cp build/app/outputs/flutter-apk/app-release.apk build_output/
-          cd build_output
-          zip app-release.zip app-release.apk
-
-      - name: Upload Zipped APK
+      - name: Upload Release APK
         uses: actions/upload-artifact@v3
         with:
-          name: app-release-apk-zip
-          path: build_output/app-release.zip
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk

@@ -72,6 +72,10 @@ class _SignupPageState extends State<SignupPage> {
         password: _passwordController.text,
         data: {'username': _usernameController.text},
       );
+      await supabase.from('profiles').insert({
+        'username':_usernameController.text,
+        'email': _emailController.text
+      });
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -106,6 +110,7 @@ class _SignupPageState extends State<SignupPage> {
             child: Container(
                 height: screenHeight,
                 child: Stack(
+                  alignment: AlignmentDirectional.center,
                   children: [
                     // Background Image
                     Positioned.fill(

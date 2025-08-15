@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui'; // Needed for ImageFilter
 import 'package:lsa_app/src/features/chat/home_page.dart'; // Import the home page
 import 'package:lsa_app/src/features/auth/signup_page.dart'; // Import the signup page
+import 'package:lsa_app/src/features/auth/forgot_password_page.dart'; // Import the forgot password page
 import 'package:lsa_app/src/utils/constants.dart'; // Import constants for Supabase
 import 'package:supabase_flutter/supabase_flutter.dart'; // Import Supabase for AuthException
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
@@ -95,6 +96,7 @@ class _LoginPageState extends State<LoginPage> {
             child: Container(
                 height: screenHeight,
                 child: Stack(
+                  alignment: AlignmentDirectional.center,
                   children: [
                     // Background Image
                     Positioned.fill(
@@ -201,7 +203,12 @@ class _LoginPageState extends State<LoginPage> {
                                       Align(
                                         alignment: Alignment.centerRight,
                                         child: TextButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                                            );
+                                          },
                                           child: Text(
                                             'Forgot Password?',
                                             style: GoogleFonts.poppins(color: Colors.white70),

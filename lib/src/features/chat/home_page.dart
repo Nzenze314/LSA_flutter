@@ -438,7 +438,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       Text(
-                        'v 0.9',
+                        'v 0.9.6',
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           color: Colors.white,

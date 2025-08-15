@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:lsa_app/src/utils/constants.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lsa_app/src/features/auth/login_page.dart';
+import 'package:lsa_app/src/features/profile/about_page.dart';
 import 'package:lsa_app/src/models/profile.dart';
-import 'package:lsa_app/src/features/auth/login_page.dart'; // Import login page for sign out
+import 'package:lsa_app/src/utils/constants.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -11,9 +13,9 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  int _stars = 0; // State for the selected number of stars
   Profile? _profile;
   bool _isLoading = true;
+  int _stars = 0;
 
   @override
   void initState() {
@@ -24,7 +26,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _getProfile() async {
     try {
       final userId = supabase.auth.currentUser!.id;
-      final data = await supabase.from('profiles').select().eq('id', userId).single();
+      final data =
+          await supabase.from('profiles').select().eq('id', userId).single();
       setState(() {
         _profile = Profile.fromMap(data);
         _isLoading = false;
@@ -43,8 +46,10 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       await supabase.auth.signOut();
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const LoginPage()));
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+          (route) => false,
+        );
       }
     } catch (error) {
       if (mounted) {
@@ -55,155 +60,212 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(body: Preloader());
-    }
-
     return Scaffold(
+      backgroundColor: const Color(0xFFFDF6FF),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFFDF6FF),
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('Profile'),
+        title: Text(
+          'PROFILE',
+          style: GoogleFonts.poppins(
+            color: const Color(0xFF9C27B0),
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    const CircleAvatar(
+                      radius: 60,
+                      backgroundImage:
+                          AssetImage('assets/images/fox.png'),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _profile?.username ?? 'Ebong Lovis',
+                      style: GoogleFonts.poppins(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.edit, size: 18),
+                      label: const Text('Edit Profile'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF3E5F5),
+                        foregroundColor: const Color(0xFF9C27B0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    _buildInfoCard(),
+                    const SizedBox(height: 30),
+                    _buildSignOutButton(),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildInfoCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildProfileInfoItem(
+            icon: Icons.email_outlined,
+            title: 'Email',
+            subtitle: supabase.auth.currentUser?.email ?? 'ebongloveis@gmail.com',
+          ),
+          const Divider(),
+          _buildProfileInfoItem(
+            icon: Icons.location_on_outlined,
+            title: 'Location',
+            subtitle: 'Buea, Cameroon',
+          ),
+          const Divider(),
+          _buildProfileInfoItem(
+            icon: Icons.school_outlined,
+            title: 'University',
+            subtitle: 'Landmark',
+          ),
+          const Divider(),
+          _buildClickableItem(
+            icon: Icons.lock_outline,
+            title: 'Change Password',
+            onTap: () {},
+          ),
+          const Divider(),
+          _buildClickableItem(
+            icon: Icons.star_outline,
+            title: 'Rate this app',
+            onTap: () {
+              _showReviewDialog(context);
+            },
+          ),
+          const Divider(),
+          _buildClickableItem(
+            icon: Icons.info_outline,
+            title: 'About App',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutPage()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileInfoItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.grey.shade600),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 60,
-                backgroundColor: const Color.fromARGB(255, 168, 118, 255),
-                backgroundImage: _profile?.avatarUrl != null
-                    ? const AssetImage('assets/images/fox.png') // ✅ Fix: use AssetImage
-                    : null,
-                child: _profile?.avatarUrl == null && _profile?.username != null
-                    ? Text(
-                        _profile!.username.isNotEmpty
-                            ? _profile!.username.substring(0, 1).toUpperCase()
-                            : '',
-                        style: const TextStyle(fontSize: 40, color: Colors.white),
-                      )
-                    : null,
-              ),
-              const SizedBox(height: 20),
               Text(
-                _profile?.username ?? 'NzenTech',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Edit Profile button pressed!')),
-                  );
-                },
-                icon: const Icon(Icons.edit),
-                label: const Text('Edit Profile'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: const Color.fromARGB(255, 209, 183, 255), backgroundColor: Colors.deepPurple,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 10), // Add some spacing between buttons
-              ElevatedButton.icon(
-                onPressed: () {
-                  _showReviewDialog(context);
-                },
-                icon: const Icon(Icons.star),
-                label: const Text('Send Review'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor:const Color.fromARGB(255, 209, 183, 255), backgroundColor: Colors.deepPurple,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                ),
-              ),
-              const SizedBox(height: 30),
-              _buildProfileInfoCard(
-                icon: Icons.email,
-                title: 'Email',
-                subtitle: supabase.auth.currentUser?.email ?? 'nzeninco@gmail.com',
-              ),
-              const SizedBox(height: 15),
-              _buildProfileInfoCard(
-                icon: Icons.location_on,
-                title: 'Location',
-                subtitle: 'Buea, Cameroon',
-              ),
-              const SizedBox(height: 15),
-              _buildProfileInfoCard(
-                icon: Icons.school,
-                title: 'University',
-                subtitle: 'Landmark',
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton.icon(
-                onPressed: _signOut,
-                icon: const Icon(Icons.logout),
-                label: const Text('Sign Out'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              Text(
+                subtitle,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
                 ),
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClickableItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.grey.shade600),
+            const SizedBox(width: 16),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const Spacer(),
+            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileInfoCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Card(
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      elevation: 0,
-      color: const Color.fromARGB(181, 255, 251, 251),
+  Widget _buildSignOutButton() {
+    return InkWell(
+      onTap: _signOut,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.grey[700]),
-            const SizedBox(width: 15),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
+            const Icon(Icons.logout, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(
+              'Sign-out',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.red,
               ),
             ),
           ],
@@ -213,7 +275,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _showReviewDialog(BuildContext context) {
-    int currentStars = _stars; // Declare currentStars outside StatefulBuilder
+    int currentStars = _stars;
+    final reviewController = TextEditingController();
 
     showDialog(
       context: context,
@@ -232,7 +295,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: List.generate(5, (index) {
                         return IconButton(
                           icon: Icon(
-                            index < currentStars ? Icons.star : Icons.star_border,
+                            index < currentStars
+                                ? Icons.star
+                                : Icons.star_border,
                             color: Colors.amber,
                             size: 30,
                           ),
@@ -246,6 +311,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 20),
                     TextField(
+                      controller: reviewController,
                       decoration: InputDecoration(
                         hintText: 'Enter your review here...',
                         border: OutlineInputBorder(
@@ -268,15 +334,50 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             ElevatedButton(
               child: const Text('Submit'),
-              onPressed: () {
-                // Update the _stars state of the ProfilePage when submitting
-                setState(() {
-                  _stars = currentStars;
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Review submitted with $_stars stars!')),
-                );
-                Navigator.of(context).pop();
+              onPressed: () async {
+                if (reviewController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a review before submitting.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  final userId = supabase.auth.currentUser!.id;
+                  await supabase.from('feedbacks').insert({
+                    'user_id': userId,
+                    'text': reviewController.text,
+                    'rating': currentStars,
+                  });
+
+                  setState(() {
+                    _stars = 0;
+                  });
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Thank you for your feedback!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    Navigator.of(context).pop();
+                  }
+                } catch (error) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Failed to submit feedback. Please try again.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } finally {
+                  reviewController.dispose();
+                }
               },
             ),
           ],

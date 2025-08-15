@@ -1,4 +1,4 @@
-# counter
+# LSA APP
 
 A new Flutter project.
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:counter/src/features/onboarding/onboarding_page.dart'; // Assuming onboarding is the initial route
+import 'package:lsa_app/src/features/onboarding/onboarding_page.dart'; // Assuming onboarding is the initial route
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:counter/src/utils/constants.dart';
-import 'package:counter/src/features/chat/home_page.dart';
+import 'package:lsa_app/src/utils/constants.dart';
+import 'package:lsa_app/src/features/chat/home_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

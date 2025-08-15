@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:counter/src/utils/constants.dart';
-import 'package:counter/src/models/profile.dart';
-import 'package:counter/src/features/auth/login_page.dart'; // Import login page for sign out
+import 'package:lsa_app/src/utils/constants.dart';
+import 'package:lsa_app/src/models/profile.dart';
+import 'package:lsa_app/src/features/auth/login_page.dart'; // Import login page for sign out
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_overboard/flutter_overboard.dart';
-import 'package:counter/src/features/auth/login_page.dart'; // Import the login page
+import 'package:lsa_app/src/features/auth/login_page.dart'; // Import the login page
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});

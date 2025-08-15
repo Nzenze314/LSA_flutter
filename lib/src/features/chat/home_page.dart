@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:counter/src/features/profile/profile_page.dart';
-import 'package:counter/src/features/auth/login_page.dart';
-import 'package:counter/src/utils/constants.dart';
-import 'package:counter/src/models/conversation.dart';
-import 'package:counter/src/models/message.dart';
+import 'package:lsa_app/src/features/profile/profile_page.dart';
+import 'package:lsa_app/src/features/auth/login_page.dart';
+import 'package:lsa_app/src/utils/constants.dart';
+import 'package:lsa_app/src/models/conversation.dart';
+import 'package:lsa_app/src/models/message.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui'; // Needed for ImageFilter
-import 'package:counter/src/features/chat/home_page.dart'; // Import the home page
-import 'package:counter/src/features/auth/signup_page.dart'; // Import the signup page
-import 'package:counter/src/utils/constants.dart'; // Import constants for Supabase
+import 'package:lsa_app/src/features/chat/home_page.dart'; // Import the home page
+import 'package:lsa_app/src/features/auth/signup_page.dart'; // Import the signup page
+import 'package:lsa_app/src/utils/constants.dart'; // Import constants for Supabase
 import 'package:supabase_flutter/supabase_flutter.dart'; // Import Supabase for AuthException
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 

@@ -67,13 +67,14 @@ class _SignupPageState extends State<SignupPage> {
         return;
       }
 
-      await supabase.auth.signUp(
+      final authResponse = await supabase.auth.signUp(
         email: _emailController.text,
         password: _passwordController.text,
         data: {'username': _usernameController.text},
       );
       await supabase.from('profiles').insert({
-        'username':_usernameController.text,
+        'id': authResponse.user!.id,
+        'username': _usernameController.text,
         'email': _emailController.text
       });
       if (mounted) {
@@ -104,9 +105,7 @@ class _SignupPageState extends State<SignupPage> {
     double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      body: _isLoading
-          ? const Preloader()
-          : SafeArea(
+      body: SafeArea(
             child: Container(
                 height: screenHeight,
                 child: Stack(
@@ -262,7 +261,7 @@ class _SignupPageState extends State<SignupPage> {
                                       SizedBox(
                                         width: double.infinity,
                                         child: ElevatedButton(
-                                          onPressed: _signUp,
+                                          onPressed: _isLoading ? null : _signUp,
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: const Color(0xFF9C27B0),
                                             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -270,14 +269,23 @@ class _SignupPageState extends State<SignupPage> {
                                               borderRadius: BorderRadius.circular(12),
                                             ),
                                           ),
-                                          child: Text(
-                                            'Sign Up',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
+                                          child: _isLoading
+                                              ? const SizedBox(
+                                                  height: 24,
+                                                  width: 24,
+                                                  child: CircularProgressIndicator(
+                                                    color: Colors.white,
+                                                    strokeWidth: 2,
+                                                  ),
+                                                )
+                                              : Text(
+                                                  'Sign Up',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
                                         ),
                                       ),
                                       const SizedBox(height: 8),

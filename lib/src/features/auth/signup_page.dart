@@ -3,8 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui'; 
 import 'package:lsa_app/src/features/chat/home_page.dart'; // Import the home page
 import 'package:lsa_app/src/features/auth/login_page.dart'; // Import the login page
-import 'package:lsa_app/src/utils/constants.dart'; // Import constants for Supabase
-import 'package:supabase_flutter/supabase_flutter.dart'; // Import Supabase for AuthException
+import 'package:lsa_app/src/utils/constants.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -77,6 +78,10 @@ class _SignupPageState extends State<SignupPage> {
         'username': _usernameController.text,
         'email': _emailController.text
       });
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('onboarding_completed', true);
+
       if (mounted) {
         Navigator.pushReplacement(
           context,

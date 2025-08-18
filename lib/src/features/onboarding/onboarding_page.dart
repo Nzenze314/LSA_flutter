@@ -15,25 +15,25 @@ class _OnboardingPageState extends State<OnboardingPage> {
     PageModel(
       color: const Color(0xFF0097A7),
       imageAssetPath: 'assets/images/onbording1.png',
-      title: 'Welcome to Chatbot',
-      body: 'Your personal AI assistant for all your needs.',
+      title: 'Say Hello To The LSA Chatbot',
+      body: 'Your personal AI assistant for all things Landmark.',
       doAnimateImage: true,
     ),
     PageModel(
       color: const Color(0xFF536DFE),
       imageAssetPath: 'assets/images/onbording1.png',
-      title: 'Smart Conversations',
-      body: 'Engage in intelligent conversations and get instant answers.',
+      title: 'Got A Question?',
+      body: 'Zylla got you covered with instant and accurate answers.',
       doAnimateImage: true,
     ),
     PageModel(
       color: const Color(0xFF9C27B0),
       imageAssetPath: 'assets/images/onbording1.png',
-      title: 'Personalized Experience',
-      body: 'Customize your chat experience and save your preferences.',
+      title: 'Curious About Other Topics?',
+      body: 'Worry not! Like every other AI, Zylla can assit with research and even coding.',
       doAnimateImage: true,
     ),
-  ];
+  ]; 
 
   @override
   Widget build(BuildContext context) {

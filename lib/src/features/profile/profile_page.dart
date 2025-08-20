@@ -882,7 +882,7 @@ class _ProfilePageState extends State<ProfilePage> {
       final filePath = '$userId/$fileName';
 
       if (file != null && !kIsWeb) {
-        await supabase.storage.from('proPic').upload(
+        await supabase.storage.from('proPics').upload(
           filePath,
           file,
           fileOptions: const FileOptions(
@@ -895,7 +895,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       // Get public URL
-      final String publicUrl = supabase.storage.from('proPic').getPublicUrl(filePath);
+      final String publicUrl = supabase.storage.from('proPics').getPublicUrl(filePath);
       return publicUrl;
     } catch (error) {
       throw Exception('Failed to upload image: ${error.toString()}');

@@ -44,6 +44,7 @@ dependencies:
   flutter_markdown: ^0.7.0 # Add this line for Markdown support
   shared_preferences: ^2.0.0 # Add this line for shared_preferences
   http: ^1.4.0
+  image_picker: ^1.0.4
 
 flutter_launcher_icons:
   android: "launcher_icon"

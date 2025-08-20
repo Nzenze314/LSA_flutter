@@ -4,6 +4,11 @@ import 'package:lsa_app/src/features/auth/login_page.dart';
 import 'package:lsa_app/src/features/profile/about_page.dart';
 import 'package:lsa_app/src/models/profile.dart';
 import 'package:lsa_app/src/utils/constants.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
+import 'dart:typed_data';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -86,10 +91,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 60,
-                      backgroundImage:
-                          AssetImage('assets/images/fox.png'),
+                      backgroundImage: _profile?.avatarUrl != null && _profile!.avatarUrl!.isNotEmpty
+                          ? NetworkImage(_profile!.avatarUrl!)
+                          : const AssetImage('assets/images/fox.png') as ImageProvider,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -101,7 +107,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        _showEditProfileDialog(context);
+                      },
                       icon: const Icon(Icons.edit, size: 18),
                       label: const Text('Edit Profile'),
                       style: ElevatedButton.styleFrom(
@@ -161,7 +169,9 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildClickableItem(
             icon: Icons.lock_outline,
             title: 'Change Password',
-            onTap: () {},
+            onTap: () {
+              _showChangePasswordDialog(context);
+            },
           ),
           const Divider(),
           _buildClickableItem(
@@ -384,5 +394,511 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       },
     );
+  }
+
+  void _showChangePasswordDialog(BuildContext context) {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool isCurrentPasswordVisible = false;
+    bool isNewPasswordVisible = false;
+    bool isConfirmPasswordVisible = false;
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing during loading
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter dialogSetState) {
+            return WillPopScope(
+              onWillPop: () async => !isLoading, // Prevent back button during loading
+              child: AlertDialog(
+                title: Text(
+                  'Change Password',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF9C27B0),
+                  ),
+                ),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: currentPasswordController,
+                        obscureText: !isCurrentPasswordVisible,
+                        enabled: !isLoading,
+                        decoration: InputDecoration(
+                          labelText: 'Current Password',
+                          labelStyle: GoogleFonts.poppins(),
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              isCurrentPasswordVisible 
+                                  ? Icons.visibility 
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: isLoading ? null : () {
+                              dialogSetState(() {
+                                isCurrentPasswordVisible = !isCurrentPasswordVisible;
+                              });
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: newPasswordController,
+                        obscureText: !isNewPasswordVisible,
+                        enabled: !isLoading,
+                        decoration: InputDecoration(
+                          labelText: 'New Password',
+                          labelStyle: GoogleFonts.poppins(),
+                          prefixIcon: const Icon(Icons.lock),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              isNewPasswordVisible 
+                                  ? Icons.visibility 
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: isLoading ? null : () {
+                              dialogSetState(() {
+                                isNewPasswordVisible = !isNewPasswordVisible;
+                              });
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: confirmPasswordController,
+                        obscureText: !isConfirmPasswordVisible,
+                        enabled: !isLoading,
+                        decoration: InputDecoration(
+                          labelText: 'Confirm New Password',
+                          labelStyle: GoogleFonts.poppins(),
+                          prefixIcon: const Icon(Icons.lock),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              isConfirmPasswordVisible 
+                                  ? Icons.visibility 
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: isLoading ? null : () {
+                              dialogSetState(() {
+                                isConfirmPasswordVisible = !isConfirmPasswordVisible;
+                              });
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: isLoading ? null : () {
+                      currentPasswordController.dispose();
+                      newPasswordController.dispose();
+                      confirmPasswordController.dispose();
+                      Navigator.of(dialogContext).pop();
+                    },
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.poppins(color: Colors.grey),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: isLoading ? null : () async {
+                      // Validate inputs
+                      if (currentPasswordController.text.isEmpty ||
+                          newPasswordController.text.isEmpty ||
+                          confirmPasswordController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please fill in all fields'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (newPasswordController.text != confirmPasswordController.text) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('New passwords do not match'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (newPasswordController.text.length < 6) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Password must be at least 6 characters long'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
+                      // Set loading state
+                      dialogSetState(() {
+                        isLoading = true;
+                      });
+
+                      try {
+                        // Update password using Supabase
+                        await supabase.auth.updateUser(
+                          UserAttributes(password: newPasswordController.text),
+                        );
+
+                        // Close dialog first
+                        currentPasswordController.dispose();
+                        newPasswordController.dispose();
+                        confirmPasswordController.dispose();
+                        Navigator.of(dialogContext).pop();
+
+                        // Then show success message
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Password updated successfully!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (error) {
+                        // Reset loading state on error
+                        if (mounted) {
+                          dialogSetState(() {
+                            isLoading = false;
+                          });
+                          
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to update password: ${error.toString()}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF9C27B0),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: isLoading 
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            'Update Password',
+                            style: GoogleFonts.poppins(),
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditProfileDialog(BuildContext context) {
+    final usernameController = TextEditingController(text: _profile?.username ?? '');
+    bool isLoading = false;
+    File? selectedImage;
+    Uint8List? webImage;
+    String? imageUrl = _profile?.avatarUrl;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter dialogSetState) {
+            return WillPopScope(
+              onWillPop: () async => !isLoading,
+              child: AlertDialog(
+                title: Text(
+                  'Edit Profile',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF9C27B0),
+                  ),
+                ),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Profile Image Section
+                      GestureDetector(
+                        onTap: (isLoading || kIsWeb) ? null : () async {
+                          await _pickImage(dialogSetState, (File? file, Uint8List? bytes, String? url) {
+                            selectedImage = file;
+                            webImage = bytes;
+                            imageUrl = url;
+                          });
+                        },
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundImage: _getImageProvider(selectedImage, webImage, imageUrl),
+                            ),
+                            if (!kIsWeb) // Only show camera icon on mobile
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF9C27B0),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        kIsWeb 
+                            ? 'Image upload not supported on web'
+                            : 'Tap to change profile picture',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: kIsWeb ? Colors.red : Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Username Section
+                      TextField(
+                        controller: usernameController,
+                        enabled: !isLoading,
+                        decoration: InputDecoration(
+                          labelText: 'Username',
+                          labelStyle: GoogleFonts.poppins(),
+                          prefixIcon: const Icon(Icons.person_outline),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: isLoading ? null : () {
+                      usernameController.dispose();
+                      Navigator.of(dialogContext).pop();
+                    },
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.poppins(color: Colors.grey),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: isLoading ? null : () async {
+                      if (usernameController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Username cannot be empty'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
+                      dialogSetState(() {
+                        isLoading = true;
+                      });
+
+                      try {
+                        final userId = supabase.auth.currentUser!.id;
+                        String? newAvatarUrl = imageUrl;
+
+                        // Upload image if a new one was selected
+                        if (selectedImage != null || webImage != null) {
+                          newAvatarUrl = await _uploadProfileImage(userId, selectedImage, webImage);
+                        }
+
+                        // Update profile in database
+                        await supabase.from('profiles').update({
+                          'username': usernameController.text.trim(),
+                          if (newAvatarUrl != null) 'avatar_url': newAvatarUrl,
+                        }).eq('id', userId);
+
+                        // Update local profile
+                        setState(() {
+                          if (_profile != null) {
+                            _profile = Profile(
+                              id: _profile!.id,
+                              username: usernameController.text.trim(),
+                              avatarUrl: newAvatarUrl,
+                              createdAt: _profile!.createdAt,
+                            );
+                          }
+                        });
+
+                        usernameController.dispose();
+                        Navigator.of(dialogContext).pop();
+
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Profile updated successfully!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (error) {
+                        if (mounted) {
+                          dialogSetState(() {
+                            isLoading = false;
+                          });
+                          
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to update profile: ${error.toString()}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF9C27B0),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: isLoading 
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            'Save Changes',
+                            style: GoogleFonts.poppins(),
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(StateSetter dialogSetState, Function(File?, Uint8List?, String?) onImageSelected) async {
+    try {
+      if (kIsWeb) {
+        // For web, show a message that image upload is not supported yet
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image upload is not supported on web. Please use the mobile app to upload images.'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+      
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        final File file = File(image.path);
+        dialogSetState(() {
+          onImageSelected(file, null, null);
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image: ${error.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  ImageProvider _getImageProvider(File? file, Uint8List? bytes, String? url) {
+    if (file != null && !kIsWeb) {
+      return FileImage(file);
+    } else if (bytes != null) {
+      return MemoryImage(bytes);
+    } else if (url != null && url.isNotEmpty) {
+      return NetworkImage(url);
+    } else {
+      return const AssetImage('assets/images/fox.png');
+    }
+  }
+
+  Future<String?> _uploadProfileImage(String userId, File? file, Uint8List? bytes) async {
+    try {
+      final fileName = 'profile';
+      final filePath = '$userId/$fileName';
+
+      if (file != null && !kIsWeb) {
+        await supabase.storage.from('proPic').upload(
+          filePath,
+          file,
+          fileOptions: const FileOptions(
+            upsert: true,
+            contentType: 'image/jpeg',
+          ),
+        );
+      } else {
+        throw Exception('Image upload not supported on web platform');
+      }
+
+      // Get public URL
+      final String publicUrl = supabase.storage.from('proPic').getPublicUrl(filePath);
+      return publicUrl;
+    } catch (error) {
+      throw Exception('Failed to upload image: ${error.toString()}');
+    }
   }
 }

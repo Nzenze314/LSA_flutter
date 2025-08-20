@@ -51,7 +51,7 @@ class AboutPage extends StatelessWidget {
               const Divider(),
               const SizedBox(height: 30),
               Text(
-                'This application is designed to provide an interactive chat experience powered by AI for the sharing of institutional knowledge and assist in research.',
+                'This application is designed to provide an interactive chat experience powered by AI for the sharing of LMUI institutional knowledge and assist in research.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 16,

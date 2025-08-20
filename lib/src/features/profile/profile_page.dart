@@ -292,7 +292,12 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Send a Review'),
+          title: Text('Send a Review', 
+                    style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF9C27B0),
+                  ),
+                ),
           content: SingleChildScrollView(
             child: StatefulBuilder(
               builder: (BuildContext context, StateSetter dialogSetState) {

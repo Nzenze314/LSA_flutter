@@ -5,6 +5,7 @@ import 'package:lsa_app/src/features/auth/login_page.dart';
 import 'package:lsa_app/src/utils/constants.dart';
 import 'package:lsa_app/src/models/conversation.dart';
 import 'package:lsa_app/src/models/message.dart';
+import 'package:lsa_app/src/models/profile.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -28,12 +29,14 @@ class _HomePageState extends State<HomePage> {
   bool _isWaitingForResponse = false;
   String? _username;
   String? _currentlyTypingMessageId;
+  Profile? _profile;
 
   @override
   void initState() {
     super.initState();
     _fetchConversations();
     _loadUsername();
+    _getProfile();
   }
 
   @override
@@ -57,13 +60,25 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadUsername() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedEmail = prefs.getString('email');
-    final savedPassword = prefs.getString('password');
     final savedUsername = prefs.getString('username');
 
     setState(() {
       _username = savedUsername;
     });
+  }
+
+  Future<void> _getProfile() async {
+    try {
+      final userId = supabase.auth.currentUser!.id;
+      final data =
+          await supabase.from('profiles').select().eq('id', userId).single();
+      setState(() {
+        _profile = Profile.fromMap(data);
+      });
+    } catch (error) {
+      // Profile loading failed, user will see default avatar
+      print('Error loading profile: $error');
+    }
   }
 
   Future<void> _fetchConversations() async {
@@ -400,19 +415,9 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.only(right: 16.0),
               child: CircleAvatar(
                 radius: 20,
-                backgroundColor: Colors.deepPurple,
-                backgroundImage: const AssetImage('assets/images/fox.png'),
-                child: supabase.auth.currentUser?.userMetadata?['username'] != null
-                    ? Text(
-                        supabase.auth.currentUser!.userMetadata!['username']
-                                .isNotEmpty
-                            ? supabase.auth.currentUser!.userMetadata!['username']
-                                .substring(0, 1)
-                                .toUpperCase()
-                            : '',
-                        style: const TextStyle(fontSize: 16, color: Colors.white),
-                      )
-                    : const Icon(Icons.person, color: Colors.white),
+                backgroundImage: _profile?.avatarUrl != null && _profile!.avatarUrl!.isNotEmpty
+                    ? NetworkImage(_profile!.avatarUrl!)
+                    : const AssetImage('assets/images/fox.png') as ImageProvider,
               ),
             ),
           ),

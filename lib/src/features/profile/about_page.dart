@@ -41,7 +41,7 @@ class AboutPage extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Version 0.9.6',
+                'Version 0.9.8',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: Colors.grey.shade600,
